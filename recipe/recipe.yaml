@@ -42,7 +42,6 @@ requirements:
     - glib
     - python
     - pandas
-    - pip
     - pprintpp
     - cython
   run:
