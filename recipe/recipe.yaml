@@ -33,7 +33,7 @@ requirements:
   host:
     - coin-or-cbc
     - libboost-devel
-    - libxmlpp-4.0
+    - libxmlpp 4.*
     - libxml2
     - liblapack
     - blis
@@ -47,7 +47,7 @@ requirements:
   run:
     - coin-or-cbc
     - libboost-devel
-    - libxmlpp-4.0
+    - libxmlpp 4.*
     - libxml2
     - liblapack
     - blis
