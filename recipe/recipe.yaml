@@ -21,7 +21,7 @@ requirements:
   build:
     - ${{ stdlib("c") }}
     - ${{ compiler("cxx") }}
-    - cmake
+    - cmake 3.*
     - make
     - pkg-config
     - if: build_platform != target_platform
