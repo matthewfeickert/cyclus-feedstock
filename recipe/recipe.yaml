@@ -30,6 +30,10 @@ build:
   skip:
     - win
     - osx
+    # hdf5 1.14.4 is only for Python 3.10; everything else uses the global pin
+    # (both values come from variants.yaml)
+    - match(python, "3.10.*") and hdf5 != "1.14.4"
+    - not match(python, "3.10.*") and hdf5 == "1.14.4"
 
 requirements:
   build:
