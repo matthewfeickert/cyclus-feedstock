@@ -10,14 +10,14 @@ overflows the stack. Read into a std::vector instead, as
 h5_array_to_cpp_set already reads into a heap allocation.
 
 ---
- src/pyne.h | 9 ++++++---
+ src/pyne.h |    9 ++++++---
  1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/src/pyne.h b/src/pyne.h
-index 6eda061..c8fcaed 100644
+index ff3b7ad..0eed7c3 100644
 --- a/src/pyne.h
 +++ b/src/pyne.h
-@@ -562,7 +562,8 @@ namespace h5wrap
+@@ -584,7 +584,8 @@ namespace h5wrap
      int arr_ndim = H5Sget_simple_extent_dims(arr_space, arr_dims, NULL);
  
      // Read in data from file to memory
@@ -27,7 +27,7 @@ index 6eda061..c8fcaed 100644
      H5Dread(dset, dtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, mem_arr);
  
      // Load new values into the vector
-@@ -593,7 +594,8 @@ namespace h5wrap
+@@ -615,7 +616,8 @@ namespace h5wrap
      // Read in data from file to memory
      // Have to read in as 1D array to get HDF5 and new keyword
      // to play nice with each other
@@ -37,7 +37,7 @@ index 6eda061..c8fcaed 100644
      H5Dread(dset, dtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, mem_arr);
  
      // Load new values into the vector of vectors, using some indexing tricks
-@@ -629,7 +631,8 @@ namespace h5wrap
+@@ -651,7 +653,8 @@ namespace h5wrap
      // Read in data from file to memory
      // Have to read in as 1D array to get HDF5 and new keyword
      // to play nice with each other
