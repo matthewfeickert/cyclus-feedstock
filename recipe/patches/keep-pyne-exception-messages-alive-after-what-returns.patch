@@ -1,0 +1,158 @@
+From: Matthew Feickert <matthew.feickert@wisc.edu>
+Date: Wed, 28 Oct 2026 19:00:00 -0600
+Subject: [PATCH] Keep PyNE exception messages alive after what() returns
+
+The what() methods of FileNotFound, FileNotHDF5, GroupNotFound,
+PathNotFound, NotANuclide, IndeterminateNuclideForm, NotAReaction, and
+IndeterminateReactionForm built their message in a local std::string
+and returned its c_str(), a pointer to memory freed when what()
+returns. Reading the message is a heap-use-after-free under
+AddressSanitizer, and Clang warns about it with -Wreturn-stack-address
+in every translation unit that includes pyne.h. Build the message in a
+mutable member instead, so it lives as long as the exception object, as
+std::exception::what() requires.
+
+---
+ src/pyne.h | 24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/src/pyne.h b/src/pyne.h
+index c058868..cf3f4ea 100644
+--- a/src/pyne.h
++++ b/src/pyne.h
+@@ -234,7 +234,7 @@ namespace pyne {
+     /// Creates a helpful error message.
+     virtual const char* what() const throw()
+     {
+-      std::string FNFstr ("File not found: ");
++      FNFstr = "File not found: ";
+       if (!filename.empty())
+         FNFstr += filename;
+ 
+@@ -242,6 +242,7 @@ namespace pyne {
+     };
+ 
+   private:
++    mutable std::string FNFstr; ///< message returned by what(), outlives the call
+     std::string filename; ///< unfindable filename.
+   };
+ 
+@@ -386,7 +387,7 @@ namespace h5wrap
+     /// helpful error message that includes the filename
+     virtual const char* what() const throw()
+     {
+-      std::string FNH5str ("Not a valid HDF5 file: ");
++      FNH5str = "Not a valid HDF5 file: ";
+       if (!filename.empty())
+         FNH5str += filename;
+ 
+@@ -394,6 +395,7 @@ namespace h5wrap
+     };
+ 
+   private:
++    mutable std::string FNH5str; ///< message returned by what(), outlives the call
+     std::string filename; ///< the file which is not in HDF5 format.
+   };
+ 
+@@ -418,7 +420,7 @@ namespace h5wrap
+     /// helpful error message that includes the filename and the groupname
+     virtual const char* what() const throw()
+     {
+-      std::string msg ("the group ");
++      msg = "the group ";
+       msg += groupname;
+       msg += " not found in the file ";
+       msg += filename;
+@@ -426,6 +428,7 @@ namespace h5wrap
+     };
+ 
+   private:
++    mutable std::string msg; ///< message returned by what(), outlives the call
+     std::string filename;   ///< the HDF5 file
+     std::string groupname;  ///< the group in the hierarchy
+   };
+@@ -451,7 +454,7 @@ namespace h5wrap
+     /// helpful error message that includes the filename and the pathname
+     virtual const char* what() const throw()
+     {
+-      std::string msg ("the path ");
++      msg = "the path ";
+       msg += path;
+       msg += " was not found in the HDF5 file ";
+       msg += filename;
+@@ -459,6 +462,7 @@ namespace h5wrap
+     };
+ 
+   private:
++    mutable std::string msg; ///< message returned by what(), outlives the call
+     std::string filename; ///< the HDF5 file
+     std::string path;     ///< the path in the file
+   };
+@@ -915,7 +919,7 @@ namespace nucname
+     /// \return The error string
+     virtual const char* what() const throw()
+     {
+-      std::string NaNEstr ("Not a Nuclide! ");
++      NaNEstr = "Not a Nuclide! ";
+       if (!nucwas.empty())
+         NaNEstr += nucwas;
+ 
+@@ -928,6 +932,7 @@ namespace nucname
+     };
+ 
+   private:
++    mutable std::string NaNEstr; ///< message returned by what(), outlives the call
+     std::string nucwas; ///< previous nuclide state
+     std::string nucnow; ///< current nuclide state
+   };
+@@ -983,7 +988,7 @@ namespace nucname
+     /// \return The error string
+     virtual const char* what() const throw()
+     {
+-      std::string INFEstr ("Indeterminate nuclide form: ");
++      INFEstr = "Indeterminate nuclide form: ";
+       if (!nucwas.empty())
+         INFEstr += nucwas;
+ 
+@@ -996,6 +1001,7 @@ namespace nucname
+     }
+ 
+   private:
++    mutable std::string INFEstr; ///< message returned by what(), outlives the call
+     std::string nucwas; ///< previous nuclide state
+     std::string nucnow; ///< current nuclide state
+   };
+@@ -1669,7 +1675,7 @@ namespace rxname
+     /// Returns a helpful error message containing prior and current reaction state.
+     virtual const char* what() const throw()
+     {
+-      std::string narxstr ("Not a reaction! ");
++      narxstr = "Not a reaction! ";
+       if (!rxwas.empty())
+         narxstr += rxwas;
+ 
+@@ -1682,6 +1688,7 @@ namespace rxname
+     };
+ 
+   private:
++    mutable std::string narxstr; ///< message returned by what(), outlives the call
+     std::string rxwas;  ///< previous reaction state
+     std::string rxnow;  ///< current reaction state
+   };
+@@ -1734,7 +1741,7 @@ namespace rxname
+     /// Returns a helpful error message containing prior and current reaction state.
+     virtual const char* what() const throw()
+     {
+-      std::string INFEstr ("Indeterminate reaction form: ");
++      INFEstr = "Indeterminate reaction form: ";
+       if (!rxwas.empty())
+         INFEstr += rxwas;
+ 
+@@ -1747,6 +1754,7 @@ namespace rxname
+     }
+ 
+   private:
++    mutable std::string INFEstr; ///< message returned by what(), outlives the call
+     std::string rxwas;  ///< previous reaction state
+     std::string rxnow;  ///< current reaction state
+   };
